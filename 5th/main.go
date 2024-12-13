@@ -21,6 +21,7 @@ func main() {
   parsedUpdates := parseUpdates(updates)
 
   part1(parsedUpdates, parsedRules)
+  part2(parsedUpdates, parsedRules)
 }
 
 func part1(updates [][]int, rules []Rule) {
@@ -42,6 +43,54 @@ func part1(updates [][]int, rules []Rule) {
   }
 
   fmt.Println(total)
+}
+
+func part2(updates [][]int, rules []Rule) {
+  total := 0
+
+  for _, update := range updates {
+    isOk := true
+
+    for _, rule := range rules {
+      if !evalRule(rule, update) {
+        isOk = false
+        break
+      }
+    }
+
+    if isOk {
+      continue
+    }
+
+    fixedUpdate := evalAndFix(update, rules)
+    total += getMiddleValue(fixedUpdate)
+  }
+
+  fmt.Println(total);
+}
+
+func evalAndFix(update []int, rules []Rule) []int {
+  var failedRules []Rule
+
+  for _, rule := range rules {
+    if !evalRule(rule, update) {
+      failedRules = append(failedRules, rule)
+    }
+  }
+
+  if len(failedRules) == 0 {
+    return update
+  }
+
+  leftNumberIndex := slices.Index(update, failedRules[0].leftNumber)
+  rightNumberIndex := slices.Index(update, failedRules[0].rightNumber)
+
+  val := update[rightNumberIndex]
+
+  update = append(update[:rightNumberIndex], update[rightNumberIndex+1:]...)
+  update = append(update[:leftNumberIndex], append([]int{val}, update[leftNumberIndex:]...)...)
+
+  return evalAndFix(update, rules)
 }
 
 func getMiddleValue(update []int) int {
